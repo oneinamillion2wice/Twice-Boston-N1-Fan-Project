@@ -6,14 +6,13 @@
     <title>Stadium View Sweetie</title>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
     <style>
-        /* Define our cute color palette */
         :root {
-            --bg-color: #FFF5F2; /* Softest Cream Peach */
-            --container-bg: #FFFFFF; /* Bright White for focus */
-            --accent-pink: #FFB3C6; /* Soft Rose Pink */
-            --accent-peach: #FFD2B8; /* Warm Peach */
-            --button-text: #603F3F; /* Deep Cocoa Brown for contrast */
-            --text-main: #6B4E4E; /* Gentle Brown for main text */
+            --bg-color: #FFF5F2;
+            --container-bg: #FFFFFF;
+            --accent-pink: #FFB3C6;
+            --accent-peach: #FFD2B8;
+            --button-text: #603F3F;
+            --text-main: #6B4E4E;
         }
 
         body { 
@@ -26,46 +25,54 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh; /* Centers vertically */
+            min-height: 100vh;
         }
 
         .container { 
             background: var(--container-bg); 
             padding: 40px 30px; 
-            border-radius: 25px; /* Super rounded corners */
+            border-radius: 25px; 
             display: inline-block; 
             width: 90%;
             max-width: 500px;
-            box-shadow: 0 8px 30px rgba(255, 179, 198, 0.15); /* Soft pink shadow */
+            box-shadow: 0 8px 30px rgba(255, 179, 198, 0.15);
             border: 2px solid #FFEBE5;
         }
 
         h1 {
-            color: #FF8BA7; /* Deepest Pink for title */
+            color: #FF8BA7;
             font-weight: 700;
             margin-bottom: 30px;
             font-size: 2em;
         }
 
-        /* Styling the Input Area */
         .input-group {
             display: flex;
             justify-content: center;
             gap: 10px;
             margin-bottom: 25px;
-            flex-wrap: wrap; /* Good for small screens */
+            flex-wrap: wrap;
         }
 
         input { 
             padding: 15px; 
-            width: 70px; 
-            border: 2px solid #FFE0D9; /* Soft peach border */
+            width: 80px; 
+            border: 2px solid #FFE0D9; 
             border-radius: 12px; 
             background: #FFFAF8; 
             color: var(--text-main); 
             font-family: 'Quicksand', sans-serif;
             font-size: 1.1em;
             transition: 0.3s;
+            /* Removes the tiny arrows on number inputs */
+            -moz-appearance: textfield;
+        }
+
+        /* Removes arrows for Chrome, Safari, Edge, Opera */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
         }
 
         input:focus {
@@ -74,39 +81,31 @@
             box-shadow: 0 0 5px rgba(255, 179, 198, 0.5);
         }
 
-        /* The Button */
         button { 
             padding: 15px 35px; 
-            background: var(--accent-pink); /* Start Pink */
+            background: var(--accent-pink); 
             border: none; 
             font-weight: 700; 
             cursor: pointer; 
-            border-radius: 50px; /* Pillow-shaped */
+            border-radius: 50px; 
             color: var(--button-text); 
             transition: all 0.3s ease; 
             font-size: 1.2em;
             box-shadow: 0 4px 10px rgba(255, 179, 198, 0.3);
-            text-shadow: 0 1px 1px rgba(255,255,255,0.4);
         }
 
         button:hover { 
-            background: var(--accent-peach); /* Hover turns it Peach */
-            transform: translateY(-3px); /* Cute hover lift */
-            box-shadow: 0 6px 15px rgba(255, 210, 184, 0.5);
-        }
-
-        /* The Image Area */
-        #resultArea {
-            margin-top: 30px;
+            background: var(--accent-peach); 
+            transform: translateY(-3px);
         }
 
         #viewImage { 
             width: 100%; 
-            max-width: 600px; 
-            border-radius: 20px; /* Rounded image corners */
+            margin-top: 30px;
+            border-radius: 20px; 
             display: none; 
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1); /* Subtle shadow for the image */
-            border: 5px solid white; /* Polaroid-style border */
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1); 
+            border: 5px solid white; 
         }
     </style>
 </head>
@@ -116,12 +115,12 @@
     <h1>Twice Boston N1 Fan Project</h1>
     
     <div class="input-group">
-        <input type="text" id="sec" placeholder="Sec">
-        <input type="text" id="row" placeholder="Row">
-        <input type="text" id="seat" placeholder="Seat">
+        <input type="number" id="sec" placeholder="Sec" min="1">
+        <input type="number" id="row" placeholder="Row" min="1">
+        <input type="number" id="seat" placeholder="Seat" min="1">
     </div>
 
-    <button onclick="findSeat()">Color Finder </button>
+    <button onclick="findSeat()">Find Color!</button>
 
     <div id="resultArea">
         <img id="viewImage" src="" alt="Seat View">
@@ -130,7 +129,6 @@
 
 <script>
     async function findSeat() {
-        // !!! DON'T FORGET !!! REPLACE THIS with your Apps Script Web App URL
         const scriptUrl = "https://script.google.com/macros/s/AKfycbyWmc9rdiYP-u2TL7n9SUnKjOujwE3lgWv02Ahdw9kreB11vistpgNS_pCsgPOWrNWaVg/exec";
         
         const sec = document.getElementById('sec').value;
@@ -138,17 +136,23 @@
         const seat = document.getElementById('seat').value;
         const imgElement = document.getElementById('viewImage');
 
+        if (!sec || !row || !seat) {
+            alert("Enter your section row and seat number!");
+            return;
+        }
+
         try {
             const response = await fetch(`${scriptUrl}?section=${sec}&row=${row}&seat=${seat}`);
             const data = await response.json();
 
-            // Just update the image source and show it. No messages.
             imgElement.src = data.url;
             imgElement.style.display = "block";
             
+            // Smoothly scroll down to the image once it appears
+            imgElement.scrollIntoView({ behavior: 'smooth' });
+            
         } catch (error) {
             console.error("Connection error:", error);
-            alert("Oops! Couldn't find the database. Please try again later.");
         }
     }
 </script>
