@@ -71,9 +71,8 @@
             flex-wrap: wrap;
         }
 
-        input { 
+        select, input { 
             padding: 15px; 
-            width: 80px; 
             border: 2px solid #FFE0D9; 
             border-radius: 12px; 
             background: #FFFAF8; 
@@ -81,12 +80,35 @@
             font-family: 'Quicksand', sans-serif;
             font-size: 1.1em;
             transition: 0.3s;
+        }
+
+        select {
+            width: 140px;
+            cursor: pointer;
+        }
+
+        input { 
+            width: 80px; 
             -moz-appearance: textfield;
+        }
+
+        /* Styling for disabled state */
+        input:disabled {
+            background: #f0f0f0;
+            border-color: #ddd;
+            cursor: not-allowed;
+            opacity: 0.6;
         }
 
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {
             -webkit-appearance: none;
             margin: 0;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--accent-pink);
+            box-shadow: 0 0 5px rgba(255, 179, 198, 0.5);
         }
 
         button { 
@@ -148,7 +170,38 @@
     </p>
     
     <div class="input-group">
-        <input type="number" id="sec" placeholder="Sec" min="1">
+        <select id="sec" onchange="toggleInputs()">
+            <option value="" disabled selected>Section</option>
+            <optgroup label="Pit">
+                <option value="GA Pit 1">GA Pit 1</option>
+                <option value="GA Pit 2">GA Pit 2</option>
+            </optgroup>
+            <optgroup label="Floor / Loge">
+                <script>
+                    for(let i=1; i<=21; i++) {
+                        document.write(`<option value="${i}">${i}</option>`);
+                    }
+                </script>
+                <option value="107">107</option>
+                <option value="109">109</option>
+                <option value="111">111</option>
+                <option value="113">113</option>
+                <option value="115">115</option>
+                <option value="137">137</option>
+                <option value="139">139</option>
+                <option value="141">141</option>
+                <option value="143">143</option>
+                <option value="145">145</option>
+            </optgroup>
+            <optgroup label="Balcony">
+                <script>
+                    for(let i=301; i<=320; i++) {
+                        document.write(`<option value="${i}">${i}</option>`);
+                    }
+                </script>
+            </optgroup>
+        </select>
+
         <input type="number" id="row" placeholder="Row" min="1">
         <input type="number" id="seat" placeholder="Seat" min="1">
     </div>
@@ -168,6 +221,27 @@
 <script>
     let currentImageUrl = "";
 
+    // New function to disable/enable Row and Seat
+    function toggleInputs() {
+        const sec = document.getElementById('sec').value;
+        const rowInput = document.getElementById('row');
+        const seatInput = document.getElementById('seat');
+
+        if (sec.includes("GA Pit")) {
+            rowInput.value = "";
+            seatInput.value = "";
+            rowInput.disabled = true;
+            seatInput.disabled = true;
+            rowInput.placeholder = "N/A";
+            seatInput.placeholder = "N/A";
+        } else {
+            rowInput.disabled = false;
+            seatInput.disabled = false;
+            rowInput.placeholder = "Row";
+            seatInput.placeholder = "Seat";
+        }
+    }
+
     async function findSeat() {
         const scriptUrl = "https://script.google.com/macros/s/AKfycbyWmc9rdiYP-u2TL7n9SUnKjOujwE3lgWv02Ahdw9kreB11vistpgNS_pCsgPOWrNWaVg/exec";
         
@@ -179,8 +253,9 @@
         const dlBtn = document.getElementById('downloadBtn');
         const status = document.getElementById('statusMsg');
 
-        if (!sec || !row || !seat) {
-            alert("Please enter your Section, Row, and Seat! 💕");
+        // Adjusted validation: GA only needs Section, others need all three
+        if (!sec || (!sec.includes("GA Pit") && (!row || !seat))) {
+            alert("Please fill in all your seat details! 💕");
             return;
         }
 
@@ -191,7 +266,7 @@
         dlBtn.style.display = "none";
 
         try {
-            const response = await fetch(`${scriptUrl}?section=${sec}&row=${row}&seat=${seat}`);
+            const response = await fetch(`${scriptUrl}?section=${encodeURIComponent(sec)}&row=${row}&seat=${seat}`);
             const data = await response.json();
 
             if (data && data.url) {
@@ -218,13 +293,10 @@
 
     async function downloadImage() {
         if (!currentImageUrl) return;
-
         try {
-            // Fetch the image as a blob to bypass some browser download restrictions
             const response = await fetch(currentImageUrl);
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
-            
             const link = document.createElement('a');
             link.href = url;
             link.download = `Twice_Boston_N1_Color.jpg`;
@@ -233,7 +305,6 @@
             document.body.removeChild(link);
             window.URL.revokeObjectURL(url);
         } catch (e) {
-            // Fallback for cross-origin issues
             window.open(currentImageUrl, '_blank');
         }
     }
